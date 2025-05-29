@@ -6,7 +6,7 @@ from casual_mcp.models import UserMessage
 from dotenv import load_dotenv
 
 from casual_mcp_chat.session import Session
-from casual_mcp_chat.utils import create_new_session
+from casual_mcp_chat.utils import create_new_session, handle_chat_messsage
 
 default_system_prompt = """You are a helpful assistant.
 
@@ -94,15 +94,13 @@ show_tool_calls = st.sidebar.checkbox("Show Tool Calls", value=False)
 async def main():
     # Display chat history
     for message in session.messsages:
-        if message.role in ['user', 'assistant'] and message.content:
-            with st.chat_message(message.role):
-                st.markdown(message.content)
+        handle_chat_messsage(message, show_tool_calls)
 
     # Handle new user input
     if prompt := st.chat_input("How can I help?"):
         provider = await provider_factory.get_provider(
             session.model,
-            config.models[session["model"]]
+            config.models[session.model]
         )
         chat = McpToolChat(
             mcp_client,
@@ -110,12 +108,10 @@ async def main():
             session.system_prompt
         )
 
-        # Display user message
-        with st.chat_message("user"):
-            st.markdown(prompt)
-
-        # Add user message to session
-        session.messsages.append(UserMessage(content=prompt))
+        # Generate User Message, add to session and display
+        user_message = UserMessage(content=prompt)
+        session.messsages.append(user_message)
+        handle_chat_messsage(user_message)
 
         # Run tool-calling chat loop
         response_messages = await chat.chat(
@@ -124,9 +120,7 @@ async def main():
 
         # Display assistant responses + store them
         for message in response_messages:
-            if message.role == "assistant" and message.content:
-                with st.chat_message(message.role):
-                    st.markdown(message.content)
+            handle_chat_messsage(message, show_tool_calls)
 
         session.messsages.extend(response_messages)
 
