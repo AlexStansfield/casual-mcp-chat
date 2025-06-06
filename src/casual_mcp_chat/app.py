@@ -6,7 +6,7 @@ from casual_mcp.models import UserMessage
 from dotenv import load_dotenv
 
 from casual_mcp_chat.session import Session
-from casual_mcp_chat.utils import create_new_session, handle_chat_messsage
+from casual_mcp_chat.utils import create_new_session, handle_chat_message
 
 default_system_prompt = """You are a helpful assistant.
 
@@ -93,8 +93,8 @@ show_tool_calls = st.sidebar.checkbox("Show Tool Calls", value=False)
 
 async def main():
     # Display chat history
-    for message in session.messsages:
-        handle_chat_messsage(message, show_tool_calls)
+    for message in session.messages:
+        handle_chat_message(message, show_tool_calls)
 
     # Handle new user input
     if prompt := st.chat_input("How can I help?"):
@@ -110,18 +110,18 @@ async def main():
 
         # Generate User Message, add to session and display
         user_message = UserMessage(content=prompt)
-        session.messsages.append(user_message)
-        handle_chat_messsage(user_message)
+        session.messages.append(user_message)
+        handle_chat_message(user_message)
 
         # Run tool-calling chat loop
         response_messages = await chat.chat(
-            session.messsages.copy(),
+            session.messages.copy(),
         )
 
         # Display assistant responses + store them
         for message in response_messages:
-            handle_chat_messsage(message, show_tool_calls)
+            handle_chat_message(message, show_tool_calls)
 
-        session.messsages.extend(response_messages)
+        session.messages.extend(response_messages)
 
 asyncio.run(main())

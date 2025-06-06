@@ -15,7 +15,7 @@ def create_new_session(
         system_prompt=system_prompt
     )
 
-def handle_chat_messsage(message: ChatMessage, show_tool_calls: bool = False):
+def handle_chat_message(message: ChatMessage, show_tool_calls: bool = False):
     if not message.role in ['user', 'assistant']:
         return
 
