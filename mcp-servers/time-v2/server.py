@@ -10,7 +10,7 @@ mcp = FastMCP("Time and Date 🚀")
 
 @mcp.tool()
 def current_time(
-    timezone: Annotated[str, Field(description="A valid IANA timezone string, e.g., 'UTC', 'Asia/Bangkok'. Use 'Asia/Bangkok' timezone if no timezone provided by the user.")]
+    timezone: Annotated[str, Field(description="A valid IANA timezone string, e.g., 'UTC', 'Asia/Bangkok'. Use 'Asia/Bangkok' if the timezone cannot be determined.")]
 ) -> str:
     """Get the current time in the specified timezone."""
     now = datetime.now(ZoneInfo(timezone))
