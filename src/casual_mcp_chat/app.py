@@ -1,4 +1,5 @@
 import asyncio
+from pathlib import Path
 
 import streamlit as st
 from casual_mcp import McpToolChat, ProviderFactory, load_config, load_mcp_client
@@ -10,13 +11,15 @@ from casual_mcp_chat.utils import create_new_session, handle_chat_message
 
 default_system_prompt = """You are a helpful assistant.
 
-You have access to up-to-date information through the tools, but you must never mention that tools were used.
+You have access to up-to-date information through the tools, but you must never
+mention that tools were used.
 
 Respond naturally and confidently, as if you already know all the facts.
 
 **Never mention your knowledge cutoff, training data, or when you were last updated.**
 
-You must not speculate or guess about dates — if a date is given to you by a tool, assume it is correct and respond accordingly without disclaimers.
+You must not speculate or guess about dates — if a date is given to you by a tool,
+assume it is correct and respond accordingly without disclaimers.
 
 Always present information as current and factual.
 """
@@ -26,6 +29,8 @@ load_dotenv()
 config = load_config("casual_mcp_config.json")
 mcp_client = load_mcp_client(config)
 provider_factory = ProviderFactory(mcp_client)
+
+PROMPT_DIR = Path("prompt-templates")
 
 st.title("🧠 Casual MCP Chat")
 
@@ -81,12 +86,51 @@ model = st.sidebar.selectbox(
 if model != session.model:
     session.model = model
 
+# Prompt templates
+prompt_files = sorted(PROMPT_DIR.glob("*.j2"))
+prompt_names = [p.stem for p in prompt_files]
+if prompt_names:
+    current_prompt_idx = (
+        prompt_names.index(session.prompt_name)
+        if session.prompt_name in prompt_names
+        else 0
+    )
+    selected_prompt = st.sidebar.selectbox(
+        "Prompt Template",
+        prompt_names,
+        index=current_prompt_idx,
+    )
+    if selected_prompt != session.prompt_name:
+        session.prompt_name = selected_prompt
+        session.system_prompt = (PROMPT_DIR / f"{selected_prompt}.j2").read_text()
+
 # System prompt editor
 session.system_prompt = st.sidebar.text_area(
     "System Prompt",
     session.system_prompt,
     height=300,
 )
+
+cols = st.sidebar.columns(2)
+if cols[0].button("Save", use_container_width=True):
+    if session.prompt_name:
+        path = PROMPT_DIR / f"{session.prompt_name}.j2"
+        path.write_text(session.system_prompt or "")
+    else:
+        st.sidebar.error("No prompt selected to save")
+
+if cols[1].button("Save As", use_container_width=True):
+    st.session_state.show_save_as = True
+
+if st.session_state.get("show_save_as"):
+    new_name = st.sidebar.text_input("New Prompt Name", key="new_prompt_name")
+    if st.sidebar.button("Confirm Save As", key="confirm_save_as"):
+        if new_name:
+            path = PROMPT_DIR / f"{new_name}.j2"
+            path.write_text(session.system_prompt or "")
+            session.prompt_name = new_name
+            st.session_state.show_save_as = False
+            st.rerun()
 
 # Toggle tool calls (future feature)
 show_tool_calls = st.sidebar.checkbox("Show Tool Calls", value=False)
