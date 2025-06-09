@@ -8,13 +8,18 @@
             "provider": "openai",
             "model": "gpt-4.1-mini"
         },
+        "gpt-4.1": {
+            "provider": "openai",
+            "model": "gpt-4.1",
+            "template": "dixie"
+        },
         "gpt-4o-mini": {
             "provider": "openai",
             "model": "gpt-4o-mini"
         },
-        "gpt-4.1": {
+        "gpt-4o": {
             "provider": "openai",
-            "model": "gpt-4.1",
+            "model": "gpt-4o",
             "template": "dixie"
         }
     },
@@ -34,6 +39,13 @@
         "words": {
             "command": "python",
             "args": ["mcp-servers/words/server.py"]
+        },
+        "fetch": {
+            "command": "npx",
+            "args": ["-y", "@lmcc-dev/mult-fetch-mcp-server"],
+            "env": {
+                "MCP_LANG": "en"
+            }
         }
     }
 }

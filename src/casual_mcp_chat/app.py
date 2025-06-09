@@ -7,7 +7,12 @@ from casual_mcp.models import UserMessage
 from dotenv import load_dotenv
 
 from casual_mcp_chat.session import Session
-from casual_mcp_chat.utils import create_new_session, handle_chat_message
+from casual_mcp_chat.utils import (
+    create_new_session,
+    get_available_templates,
+    get_template_content,
+    handle_chat_message,
+)
 
 default_system_prompt = """You are a helpful assistant.
 
@@ -40,6 +45,9 @@ if "sessions" not in st.session_state:
 
 if "active_session" not in st.session_state:
     create_new_session(system_prompt=default_system_prompt)
+
+if "template_load_index" not in st.session_state:
+    st.session_state.reset_template_select = False
 
 # Get current session
 session: Session = st.session_state.sessions[st.session_state.active_session]
@@ -76,7 +84,7 @@ for session_id in list(st.session_state.sessions.keys()):
 
 st.sidebar.markdown("---")
 
-# Select model
+# Sidebar: Select model
 model = st.sidebar.selectbox(
     "Model",
     [key for key in config.models.keys()],
@@ -86,25 +94,21 @@ model = st.sidebar.selectbox(
 if model != session.model:
     session.model = model
 
-# Prompt templates
-prompt_files = sorted(PROMPT_DIR.glob("*.j2"))
-prompt_names = [p.stem for p in prompt_files]
-if prompt_names:
-    current_prompt_idx = (
-        prompt_names.index(session.prompt_name)
-        if session.prompt_name in prompt_names
-        else 0
-    )
-    selected_prompt = st.sidebar.selectbox(
-        "Prompt Template",
-        prompt_names,
-        index=current_prompt_idx,
-    )
-    if selected_prompt != session.prompt_name:
-        session.prompt_name = selected_prompt
-        session.system_prompt = (PROMPT_DIR / f"{selected_prompt}.j2").read_text()
+# Sidebar: Prompt Template Selector
+templates = get_available_templates()
+template_index = templates.index(session.prompt_name) if session.prompt_name in templates else None
+selected_template = st.sidebar.selectbox(
+    "Load Template",
+    templates,
+    index=template_index,
+    placeholder="Pick a Template",
+)
 
-# System prompt editor
+if selected_template and selected_template != session.prompt_name:
+    session.prompt_name = selected_template
+    session.system_prompt = get_template_content(selected_template)
+
+# Sidebar: System prompt editor
 session.system_prompt = st.sidebar.text_area(
     "System Prompt",
     session.system_prompt,
@@ -142,6 +146,12 @@ async def main():
 
     # Handle new user input
     if prompt := st.chat_input("How can I help?"):
+        # Generate User Message, add to session and display
+        user_message = UserMessage(content=prompt)
+        session.messages.append(user_message)
+        handle_chat_message(user_message)
+
+        # Get the Provider and Chat
         provider = await provider_factory.get_provider(
             session.model,
             config.models[session.model]
@@ -151,11 +161,6 @@ async def main():
             provider,
             session.system_prompt
         )
-
-        # Generate User Message, add to session and display
-        user_message = UserMessage(content=prompt)
-        session.messages.append(user_message)
-        handle_chat_message(user_message)
 
         # Run tool-calling chat loop
         response_messages = await chat.chat(
