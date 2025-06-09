@@ -151,7 +151,7 @@ async def main():
         session.messages.append(user_message)
         handle_chat_message(user_message)
 
-        # Get the Provider and Chat
+        # Get the Provider and Chat 
         provider = await provider_factory.get_provider(
             session.model,
             config.models[session.model]

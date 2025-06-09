@@ -1,9 +1,23 @@
 from pathlib import Path
-
 import streamlit as st
+
 from casual_mcp.models import ChatMessage
 
 from casual_mcp_chat.session import Session
+
+TEMPLATES_DIR = Path("prompt-templates")
+
+def get_available_templates() -> list[str]:
+    return [
+        f.stem  # filename without .j2 extension
+        for f in TEMPLATES_DIR.glob("*.j2")
+    ]
+
+def get_template_content(template_name) -> str:
+    # Load the selected template content
+    template_path = TEMPLATES_DIR / f"{template_name}.j2"
+    template_content = template_path.read_text()
+    return template_content
 
 TEMPLATES_DIR = Path("prompt-templates")
 
