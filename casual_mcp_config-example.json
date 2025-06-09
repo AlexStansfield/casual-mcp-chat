@@ -46,13 +46,6 @@
             "env": {
                 "MCP_LANG": "en"
             }
-        },
-        "brave-search": {
-            "command": "npx",
-            "args": ["-y", "@modelcontextprotocol/server-brave-search"],
-            "env": {
-                "BRAVE_API_KEY": "BSAedTey0O_dxvs8gGiXSCtHIMqiOAU"
-            }
         }
     }
 }
