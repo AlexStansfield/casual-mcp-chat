@@ -10,3 +10,4 @@ wheels/
 .venv
 
 .env
+casual_mcp_config.json

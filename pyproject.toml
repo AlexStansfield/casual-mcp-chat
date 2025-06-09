@@ -7,7 +7,7 @@ requires-python = ">=3.10"
 license = { text = "MIT" }
 authors = [{ name = "Alex Stansfield" }]
 dependencies = [
-    "casual-mcp>=0.3.0",
+    "casual-mcp>=0.3.1",
     "python-dotenv>=1.1.0",
     "streamlit>=1.45.1",
 ]
