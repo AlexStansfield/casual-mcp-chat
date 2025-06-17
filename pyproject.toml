@@ -14,6 +14,12 @@ dependencies = [
 
 [tool.setuptools]
 package-dir = { "" = "src" }
+license-files = ["LICENSE"]
+
+[tool.setuptools.package-data]
+"casual_mcp_chat" = [
+    "files/*"
+]
 
 [tool.setuptools.packages.find]
 where = ["src"]
