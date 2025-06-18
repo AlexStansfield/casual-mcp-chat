@@ -1,25 +1,25 @@
+import shutil
 from pathlib import Path
-import streamlit as st
 
+import streamlit as st
 from casual_mcp.models import ChatMessage
 
 from casual_mcp_chat.session import Session
 
-TEMPLATES_DIR = Path("prompt-templates")
-
-def get_available_templates() -> list[str]:
-    return [
-        f.stem  # filename without .j2 extension
-        for f in TEMPLATES_DIR.glob("*.j2")
-    ]
-
-def get_template_content(template_name) -> str:
-    # Load the selected template content
-    template_path = TEMPLATES_DIR / f"{template_name}.j2"
-    template_content = template_path.read_text()
-    return template_content
+FILES_DIR = Path(__file__).parent / "files"
 
 TEMPLATES_DIR = Path("prompt-templates")
+
+
+def ensure_default_files() -> None:
+    """Ensure default config and templates exist in the current directory."""
+    if not TEMPLATES_DIR.exists():
+        TEMPLATES_DIR.mkdir(parents=True, exist_ok=True)
+        shutil.copy(FILES_DIR / "default.j2", TEMPLATES_DIR / "default.j2")
+
+    config_path = Path("casual_mcp_config.json")
+    if not config_path.exists():
+        shutil.copy(FILES_DIR / "casual_mcp_config.json", config_path)
 
 def get_available_templates() -> list[str]:
     return [
